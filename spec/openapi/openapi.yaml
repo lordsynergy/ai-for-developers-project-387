@@ -1,0 +1,736 @@
+openapi: 3.0.0
+info:
+  title: Calendar Booking API
+  version: 1.0.0
+tags: []
+paths:
+  /api/admin/availability-rules:
+    get:
+      operationId: AdminApi_getAvailabilityRules
+      description: |-
+        Получить правила рабочего времени владельца.
+        Требует валидный Bearer token.
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AvailabilityRule'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundError'
+      security:
+        - BearerAuth: []
+    put:
+      operationId: AdminApi_updateAvailabilityRules
+      description: |-
+        Обновить правила рабочего времени владельца.
+        Требует валидный Bearer token.
+
+        Заменяет все существующие правила новым набором.
+
+        Бизнес-правила:
+        - Правило не может иметь startTime позже endTime.
+        - Правила не должны пересекаться для одного дня недели.
+        - При нарушении возвращается 422 Validation Error.
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AvailabilityRule'
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestError'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedError'
+        '422':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAvailabilityRulesRequest'
+      security:
+        - BearerAuth: []
+  /api/admin/bookings/upcoming:
+    get:
+      operationId: AdminApi_getUpcomingBookings
+      description: |-
+        Получить список предстоящих бронирований.
+        Требует валидный Bearer token.
+
+        Возвращает будущие бронирования всех типов встреч,
+        отсортированные по startsAt по возрастанию.
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Booking'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedError'
+      security:
+        - BearerAuth: []
+  /api/admin/event-types:
+    get:
+      operationId: AdminApi_listAdminEventTypes
+      description: |-
+        Получить список типов встреч (админ-версия).
+        Требует валидный Bearer token.
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EventType'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedError'
+      security:
+        - BearerAuth: []
+    post:
+      operationId: AdminApi_createEventType
+      description: |-
+        Создать новый тип встречи.
+        Требует валидный Bearer token.
+
+        Если event type с таким id уже существует — 409 Conflict.
+      parameters: []
+      responses:
+        '201':
+          description: The request has succeeded and a new resource has been created as a result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventType'
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestError'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedError'
+        '409':
+          description: The request conflicts with the current state of the server.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConflictError'
+        '422':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventTypeCreateRequest'
+      security:
+        - BearerAuth: []
+  /api/admin/event-types/{eventTypeId}:
+    patch:
+      operationId: AdminApi_updateEventType
+      description: |-
+        Обновить существующий тип встречи.
+        Требует валидный Bearer token.
+        Все поля опциональны — обновляются только переданные.
+      parameters:
+        - name: eventTypeId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Slug'
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventType'
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestError'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundError'
+        '422':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventTypeUpdateRequest'
+      security:
+        - BearerAuth: []
+    delete:
+      operationId: AdminApi_deleteEventType
+      description: |-
+        Удалить тип встречи.
+        Требует валидный Bearer token.
+      parameters:
+        - name: eventTypeId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Slug'
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestError'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundError'
+      security:
+        - BearerAuth: []
+  /api/admin/profile:
+    get:
+      operationId: AdminApi_getProfile
+      description: |-
+        Получить профиль владельца календаря.
+        Требует валидный Bearer token.
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Owner'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundError'
+      security:
+        - BearerAuth: []
+  /api/admin/sessions:
+    post:
+      operationId: AdminApi_login
+      description: |-
+        Войти в административную часть.
+        Не требует предварительной аутентификации.
+
+        При успешном входе возвращает token для последующих запросов.
+        Token передаётся в заголовке Authorization: Bearer <token>.
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminSession'
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestError'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+    delete:
+      operationId: AdminApi_logout
+      description: |-
+        Завершить админскую сессию (logout).
+        Требует валидный Bearer token.
+      parameters: []
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedError'
+      security:
+        - BearerAuth: []
+  /api/public/bookings:
+    post:
+      operationId: PublicApi_createBooking
+      description: |-
+        Создать бронирование.
+
+        Бизнес-правила:
+        - Бронирование нельзя создать вне рабочего времени.
+        - Бронирование нельзя создать вне окна 14 дней.
+        - Бронирование нельзя создать, если оно пересекается с существующим бронированием.
+        - Конфликт занятости действует между всеми типами встреч.
+        - Занятый слот возвращает 409 Conflict.
+        - Нарушение бизнес-правил возвращает 422 Validation Error.
+      parameters: []
+      responses:
+        '201':
+          description: The request has succeeded and a new resource has been created as a result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Booking'
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundError'
+        '409':
+          description: The request conflicts with the current state of the server.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConflictError'
+        '422':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBookingRequest'
+  /api/public/event-types:
+    get:
+      operationId: PublicApi_listEventTypes
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EventType'
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestError'
+  /api/public/event-types/{eventTypeId}/slots:
+    get:
+      operationId: PublicApi_getSlots
+      description: |-
+        Получить свободные слоты для выбранного типа встречи.
+
+        Бизнес-правила:
+        - Слоты формируются сервером на ближайшие 14 дней от текущей даты сервера.
+        - Слоты строятся с учётом timezone владельца.
+        - Слоты строятся с учётом рабочего времени владельца.
+        - Слот должен соответствовать durationMinutes выбранного типа встречи.
+        - Конфликт занятости действует между всеми типами встреч.
+      parameters:
+        - name: eventTypeId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Slug'
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Slot'
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundError'
+components:
+  schemas:
+    AdminSession:
+      type: object
+      required:
+        - token
+        - expiresAt
+      properties:
+        token:
+          type: string
+        expiresAt:
+          type: string
+          format: date-time
+    AvailabilityRule:
+      type: object
+      required:
+        - id
+        - dayOfWeek
+        - startTime
+        - endTime
+      properties:
+        id:
+          type: string
+        dayOfWeek:
+          $ref: '#/components/schemas/DayOfWeek'
+        startTime:
+          $ref: '#/components/schemas/TimeString'
+        endTime:
+          $ref: '#/components/schemas/TimeString'
+    AvailabilityRuleInput:
+      type: object
+      required:
+        - dayOfWeek
+        - startTime
+        - endTime
+      properties:
+        dayOfWeek:
+          $ref: '#/components/schemas/DayOfWeek'
+        startTime:
+          $ref: '#/components/schemas/TimeString'
+        endTime:
+          $ref: '#/components/schemas/TimeString'
+    BadRequestError:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          enum:
+            - BAD_REQUEST
+      allOf:
+        - $ref: '#/components/schemas/ErrorBody'
+    Booking:
+      type: object
+      required:
+        - id
+        - eventTypeId
+        - eventTypeTitle
+        - guestName
+        - guestEmail
+        - startsAt
+        - endsAt
+        - createdAt
+      properties:
+        id:
+          type: string
+        eventTypeId:
+          $ref: '#/components/schemas/Slug'
+        eventTypeTitle:
+          type: string
+        guestName:
+          type: string
+        guestEmail:
+          type: string
+        startsAt:
+          type: string
+          format: date-time
+        endsAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+    ConflictError:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          enum:
+            - CONFLICT
+      allOf:
+        - $ref: '#/components/schemas/ErrorBody'
+    CreateBookingRequest:
+      type: object
+      required:
+        - eventTypeId
+        - startAt
+        - guestName
+        - guestEmail
+      properties:
+        eventTypeId:
+          $ref: '#/components/schemas/Slug'
+        startAt:
+          type: string
+          format: date-time
+        guestName:
+          type: string
+          minLength: 1
+        guestEmail:
+          type: string
+          format: email
+    DayOfWeek:
+      type: integer
+      format: int32
+      minimum: 1
+      maximum: 7
+    ErrorBody:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+    EventType:
+      type: object
+      required:
+        - id
+        - title
+        - description
+        - durationMinutes
+      properties:
+        id:
+          $ref: '#/components/schemas/Slug'
+        title:
+          type: string
+          minLength: 1
+        description:
+          type: string
+        durationMinutes:
+          type: integer
+          format: int32
+          minimum: 1
+    EventTypeCreateRequest:
+      type: object
+      required:
+        - id
+        - title
+        - description
+        - durationMinutes
+      properties:
+        id:
+          $ref: '#/components/schemas/Slug'
+        title:
+          type: string
+          minLength: 1
+        description:
+          type: string
+        durationMinutes:
+          type: integer
+          format: int32
+          minimum: 1
+    EventTypeUpdateRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+        description:
+          type: string
+        durationMinutes:
+          type: integer
+          format: int32
+          minimum: 1
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 1
+    NotFoundError:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          enum:
+            - NOT_FOUND
+      allOf:
+        - $ref: '#/components/schemas/ErrorBody'
+    Owner:
+      type: object
+      required:
+        - id
+        - name
+        - timezone
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        timezone:
+          type: string
+    Slot:
+      type: object
+      required:
+        - eventTypeId
+        - startAt
+        - endAt
+        - durationMinutes
+      properties:
+        eventTypeId:
+          $ref: '#/components/schemas/Slug'
+        startAt:
+          type: string
+          format: date-time
+        endAt:
+          type: string
+          format: date-time
+        durationMinutes:
+          type: integer
+          format: int32
+    Slug:
+      type: string
+      pattern: ^[a-z0-9-]+$
+    TimeString:
+      type: string
+      pattern: ^([01]\d|2[0-3]):([0-5]\d)$
+    UnauthorizedError:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          enum:
+            - UNAUTHORIZED
+      allOf:
+        - $ref: '#/components/schemas/ErrorBody'
+    UpdateAvailabilityRulesRequest:
+      type: object
+      required:
+        - rules
+      properties:
+        rules:
+          type: array
+          items:
+            $ref: '#/components/schemas/AvailabilityRuleInput'
+    ValidationError:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          enum:
+            - VALIDATION_ERROR
+      allOf:
+        - $ref: '#/components/schemas/ErrorBody'
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: Bearer
+servers:
+  - url: http://localhost:3000
+    description: Local development server
+    variables: {}

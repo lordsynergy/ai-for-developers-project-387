@@ -1,0 +1,17 @@
+node_modules/
+spec/node_modules/
+frontend/.env
+frontend/dist/
+frontend/*.tsbuildinfo
+frontend/vite.config.d.ts
+frontend/vite.config.js
+.idea
+.agents
+.codex
+frontend/.agents
+frontend/.codex
+docs/
+
+# Собранный frontend внутри backend/public (генерируется Dockerfile)
+backend/public/index.html
+backend/public/assets/

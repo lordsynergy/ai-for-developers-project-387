@@ -1,0 +1,10 @@
+/config/master.key
+/log/*.log
+/storage/*.sqlite3
+/storage/*.sqlite3-*
+/tmp/*
+!/tmp/.keep
+!/tmp/pids/
+!/tmp/pids/.keep
+!/tmp/storage/
+!/tmp/storage/.keep

@@ -1,0 +1,12 @@
+{
+  "name": "calendar-booking-api-spec",
+  "version": "1.0.0",
+  "description": "TypeSpec specification for Calendar Booking API",
+  "dependencies": {
+    "@typespec/compiler": "^1.12.0",
+    "@typespec/http": "^1.12.0",
+    "@typespec/openapi3": "^1.12.0",
+    "@typespec/rest": "^0.82.0"
+  },
+  "private": true
+}
