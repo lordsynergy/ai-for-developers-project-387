@@ -20,6 +20,7 @@ test('booked slot is no longer available after refreshing slots', async ({ page 
   });
 
   await openPublicBookingPage(page);
+  await expect(page.getByLabel('Доступное время')).toBeVisible();
   await selectDateByText(page, selectedSlot.dateText);
 
   await expect(page.getByLabel('Доступное время')).not.toContainText(selectedSlot.timeLabel);

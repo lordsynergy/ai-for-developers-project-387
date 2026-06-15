@@ -28,6 +28,7 @@ export async function openPublicBookingPage(page: Page) {
   await page.goto('/');
   await expect(page.getByRole('heading', { name: 'Бронирование встреч' })).toBeVisible();
   await page.getByLabel('Выберите тип встречи').selectOption({ value: 'intro-call' });
+  await page.waitForSelector('[class*="date-cell"]:not([disabled])');
 }
 
 export async function selectFirstAvailableSlot(page: Page): Promise<SelectedSlot> {
