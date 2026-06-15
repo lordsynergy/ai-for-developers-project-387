@@ -1,138 +1,138 @@
-# Development Plan
+# План разработки
 
-## Project Context
+## Контекст проекта
 
-This is a calendar booking application inspired by Cal.com. The core functionality is already implemented: the owner configures event types and weekly availability, the guest browses public slots for the next 14 days and books a suitable time.
+Это приложение для бронирования встреч, вдохновлённое Cal.com. Базовая функциональность уже реализована: владелец настраивает типы встреч (event types) и еженедельное рабочее время, гость просматривает публичные слоты на ближайшие 14 дней и бронирует подходящее время.
 
-## Goal
+## Цель
 
-The goal of this stage is not to write a major new feature, but to integrate OpenCode into the GitHub development workflow: creating issues, task triage, pull requests, reviews, follow-up changes, and regular automated checks.
+Цель этого этапа — не писать крупную новую фичу, а встроить OpenCode в цикл разработки на GitHub: создание issue, анализ задачи, pull request, ревью, доработки, регулярные автоматические проверки.
 
-## Planned Issues
+## Запланированные задачи
 
-### 1. [Bug] Missing eventTypeId returns 404 instead of 400
+### 1. [Bug] Отсутствие eventTypeId возвращает 404 вместо 400
 
-**Problem:**
-`POST /api/public/bookings` without `eventTypeId` currently may be handled as `not found`, because the backend tries to find an event type by a missing slug. Missing required input should be treated as `400 Bad Request`.
+**Проблема:**
+`POST /api/public/bookings` без `eventTypeId` сейчас может обрабатываться как `not found`, потому что backend пытается найти тип встречи по отсутствующему slug. Отсутствие обязательного поля должно возвращать `400 Bad Request`.
 
-**Acceptance criteria:**
-- Add a regression request spec.
-- `POST /api/public/bookings` without `eventTypeId` returns `400 Bad Request`.
-- The response format is consistent with other API errors.
-- Existing specs pass.
+**Критерии приёмки:**
+- Добавить regression request spec.
+- `POST /api/public/bookings` без `eventTypeId` возвращает `400 Bad Request`.
+- Формат ответа соответствует другим API-ошибкам.
+- Существующие specs проходят.
 
-**Possible files:** `backend/app/controllers/api/public/bookings_controller.rb`, `backend/app/services/bookings/creator.rb`, `backend/spec/requests/public_api_spec.rb`
+**Возможные файлы:** `backend/app/controllers/api/public/bookings_controller.rb`, `backend/app/services/bookings/creator.rb`, `backend/spec/requests/public_api_spec.rb`
 
 **Labels:** backend, bug, tests
 
-**Priority:** High
+**Приоритет:** High
 
 ---
 
-### 2. [Bug] Race condition when switching event types on the public page
+### 2. [Bug] Race condition при переключении типов встреч на публичной странице
 
-**Problem:**
-When a user quickly switches between event types, an older slots request may finish after a newer one and overwrite the current slots state.
+**Проблема:**
+При быстром переключении между типами встреч старый запрос слотов может завершиться позже нового и перезаписать текущее состояние `slots`.
 
-**Acceptance criteria:**
-- Prevent stale slot responses from updating the UI.
-- Use `AbortController` or another explicit stale-request guard.
-- Add a test or document a manual verification scenario.
-- Existing frontend build/checks pass.
+**Критерии приёмки:**
+- Предотвратить обновление UI устаревшими ответами.
+- Использовать `AbortController` или явную защиту от stale-запросов.
+- Добавить тест или задокументировать сценарий ручной проверки.
+- Существующие frontend проверки проходят.
 
-**Possible files:** `frontend/src/App.tsx`, `frontend/src/api/client.ts`
+**Возможные файлы:** `frontend/src/App.tsx`, `frontend/src/api/client.ts`
 
 **Labels:** frontend, bug, ux
 
-**Priority:** Medium
+**Приоритет:** Medium
 
 ---
 
-### 3. [UX] Expired admin token keeps frontend in authenticated state
+### 3. [UX] Просроченный admin token оставляет frontend в авторизованном состоянии
 
-**Problem:**
-The backend returns token expiration information, but the frontend stores only the token. After the token expires, the UI may still look authenticated while API requests fail with `401`.
+**Проблема:**
+Backend возвращает информацию об истечении токена, но frontend хранит только сам токен. После истечения срока UI может выглядеть авторизованным, а API-запросы падают с `401`.
 
-**Acceptance criteria:**
-- Store and validate token expiration, or handle `401` responses globally.
-- Expired sessions redirect the user to the login screen.
-- Admin state is cleared when the session is no longer valid.
-- Existing frontend checks pass.
+**Критерии приёмки:**
+- Хранить и проверять срок действия токена, или глобально обрабатывать `401`.
+- Просроченные сессии перенаправляют пользователя на экран логина.
+- Состояние админа очищается, когда сессия больше не валидна.
+- Существующие frontend проверки проходят.
 
-**Possible files:** `frontend/src/api/client.ts`, `frontend/src/App.tsx`
+**Возможные файлы:** `frontend/src/api/client.ts`, `frontend/src/App.tsx`
 
 **Labels:** frontend, ux, auth
 
-**Priority:** Medium
+**Приоритет:** Medium
 
 ---
 
-### 4. [Tests] Add missing negative request specs
+### 4. [Tests] Добавить недостающие негативные request specs
 
-**Problem:**
-The backend already has several negative tests, but some important invalid public API cases are still worth covering.
+**Проблема:**
+В backend уже есть несколько негативных тестов, но некоторые важные случаи для public API всё ещё стоит покрыть.
 
-**Cases to cover (if not already covered by issue #1):**
-- `POST /api/public/bookings` with invalid `guestEmail`.
-- `GET /api/public/event-types/:id/slots` for a non-existent event type.
-- Unauthorized access for the main admin endpoints (profile, availability-rules, bookings).
+**Сценарии для покрытия (если ещё не покрыто в задаче #1):**
+- `POST /api/public/bookings` с невалидным `guestEmail`.
+- `GET /api/public/event-types/:id/slots` для несуществующего типа встречи.
+- Неавторизованный доступ к основным admin endpoint'ам (profile, availability-rules, bookings).
 
-**Acceptance criteria:**
-- Add focused request specs for the missing negative cases.
-- Do not duplicate existing tests.
-- Existing specs pass.
+**Критерии приёмки:**
+- Добавить focused request specs для недостающих негативных кейсов.
+- Не дублировать существующие тесты.
+- Существующие specs проходят.
 
-**Possible files:** `backend/spec/requests/public_api_spec.rb`, `backend/spec/requests/admin_api_spec.rb`
+**Возможные файлы:** `backend/spec/requests/public_api_spec.rb`, `backend/spec/requests/admin_api_spec.rb`
 
 **Labels:** backend, tests
 
-**Priority:** Medium
+**Приоритет:** Medium
 
 ---
 
-### 5. [CI] Audit GitHub Actions workflows
+### 5. [CI] Аудит GitHub Actions workflows
 
-**Problem:**
-The repository should use supported GitHub Actions versions. The task is to verify the current workflow versions and ensure the workflows are useful and do not have unexpected behavior. Do not blindly downgrade actions.
+**Проблема:**
+В репозитории нужно использовать поддерживаемые версии GitHub Actions. Задача — проверить текущие версии и убедиться, что workflows полезны и не содержат неожиданного поведения. Не снижать версию без причины.
 
-**Acceptance criteria:**
-- Verify current versions of `actions/checkout`, `actions/setup-node`, and `actions/upload-artifact`.
-- Update only unsupported or outdated actions.
-- Keep useful checks such as `frontend build`.
-- The workflow passes on pull requests.
+**Критерии приёмки:**
+- Проверить текущие версии `actions/checkout`, `actions/setup-node`, `actions/upload-artifact`.
+- Обновить только неподдерживаемые или устаревшие actions.
+- Сохранить полезные проверки, включая `frontend build`.
+- Workflow проходит на pull requests.
 
-**Possible files:** `.github/workflows/e2e.yml`, `.github/workflows/opencode-*.yml`, `.github/workflows/hexlet-check.yml`
+**Возможные файлы:** `.github/workflows/e2e.yml`, `.github/workflows/opencode-*.yml`, `.github/workflows/hexlet-check.yml`
 
 **Labels:** ci, github-actions
 
-**Priority:** Medium
+**Приоритет:** Medium
 
 ---
 
-### 6. [Automation] Add scheduled Lighthouse workflow
+### 6. [Automation] Добавить scheduled Lighthouse workflow
 
-**Problem:**
-The project needs a scheduled workflow that demonstrates regular automated checks.
+**Проблема:**
+Проекту нужен scheduled workflow, демонстрирующий регулярные автоматические проверки.
 
-**Acceptance criteria:**
-- Add a GitHub Actions workflow with `schedule` and `workflow_dispatch` triggers.
-- Start the application or frontend preview server before running Lighthouse.
-- Run a Lighthouse check against the frontend.
-- Upload the Lighthouse report as a workflow artifact.
-- Document how to find the report in GitHub Actions.
+**Критерии приёмки:**
+- Добавить GitHub Actions workflow с триггерами `schedule` и `workflow_dispatch`.
+- Поднять приложение или frontend preview server перед запуском Lighthouse.
+- Запустить Lighthouse проверку для frontend.
+- Загрузить Lighthouse отчёт как artifact workflow.
+- Задокументировать, как найти отчёт в GitHub Actions.
 
-**Possible files:** Create `.github/workflows/nightly.yml`, add `lighthouserc.json` in `frontend/`
+**Возможные файлы:** Создать `.github/workflows/nightly.yml`, добавить `lighthouserc.json` в `frontend/`
 
 **Labels:** ci, automation, lighthouse
 
-**Priority:** High
+**Приоритет:** High
 
 ---
 
-## First recommended OpenCode issue
+## Рекомендуемый первый issue для OpenCode
 
-Start with:
+Начать с:
 
-**[Bug] Missing eventTypeId returns 404 instead of 400**
+**[Bug] Отсутствие eventTypeId возвращает 404 вместо 400**
 
-This is a small backend task with clear acceptance criteria, suitable for the first full cycle: issue → triage → pull request → review → follow-up changes.
+Это небольшая backend-задача с чёткими критериями приёмки, подходящая для первого полного цикла: issue → triage → pull request → ревью → доработки.
