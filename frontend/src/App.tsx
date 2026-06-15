@@ -242,7 +242,25 @@ function PublicBookingPage() {
       return;
     }
 
-    void loadSlots(selectedEventTypeId);
+    let cancelled = false;
+
+    void (async () => {
+      setSlots({ data: [], loading: true, error: null });
+      setSelectedSlot(null);
+      setSelectedDateKey('');
+      try {
+        const data = await api.public.getSlots(selectedEventTypeId);
+        if (cancelled) return;
+        setSlots({ data, loading: false, error: null });
+      } catch (error) {
+        if (cancelled) return;
+        setSlots({ data: [], loading: false, error: toMessage(error) });
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [selectedEventTypeId]);
 
   const selectedEventTypeIndex = eventTypes.data.findIndex((eventType) => eventType.id === selectedEventTypeId);
@@ -319,16 +337,15 @@ function PublicBookingPage() {
     }
   }
 
-  async function loadSlots(eventTypeId: string) {
+  function loadSlots(eventTypeId: string) {
     setSlots({ data: [], loading: true, error: null });
     setSelectedSlot(null);
     setSelectedDateKey('');
-    try {
-      const data = await api.public.getSlots(eventTypeId);
+    api.public.getSlots(eventTypeId).then((data) => {
       setSlots({ data, loading: false, error: null });
-    } catch (error) {
+    }).catch((error) => {
       setSlots({ data: [], loading: false, error: toMessage(error) });
-    }
+    });
   }
 
   async function handleSubmit(event: FormEvent) {
