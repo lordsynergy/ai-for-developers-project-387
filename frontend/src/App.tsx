@@ -337,15 +337,16 @@ function PublicBookingPage() {
     }
   }
 
-  function loadSlots(eventTypeId: string) {
+  async function loadSlots(eventTypeId: string) {
     setSlots({ data: [], loading: true, error: null });
     setSelectedSlot(null);
     setSelectedDateKey('');
-    api.public.getSlots(eventTypeId).then((data) => {
+    try {
+      const data = await api.public.getSlots(eventTypeId);
       setSlots({ data, loading: false, error: null });
-    }).catch((error) => {
+    } catch (error) {
       setSlots({ data: [], loading: false, error: toMessage(error) });
-    });
+    }
   }
 
   async function handleSubmit(event: FormEvent) {
