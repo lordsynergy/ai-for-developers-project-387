@@ -11,7 +11,7 @@ type SelectedSlot = {
   timeValue: string;
 };
 
-function escapeRegExp(value: string) {
+export function escapeRegExp(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 

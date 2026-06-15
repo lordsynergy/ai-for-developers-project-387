@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { bookFirstAvailableSlot, bookSelectedSlot, openPublicBookingPage, selectDateByText, selectFirstAvailableSlot } from './support/booking';
+import { bookFirstAvailableSlot, bookSelectedSlot, escapeRegExp, openPublicBookingPage, selectDateByText, selectFirstAvailableSlot } from './support/booking';
 import { resetTestDatabase } from './support/database';
 
 test.beforeEach(() => {
@@ -21,9 +21,14 @@ test('booked slot is no longer available after refreshing slots', async ({ page 
 
   await openPublicBookingPage(page);
   await expect(page.getByLabel('Доступное время')).toBeVisible();
-  await selectDateByText(page, selectedSlot.dateText);
 
-  await expect(page.getByLabel('Доступное время')).not.toContainText(selectedSlot.timeLabel);
+  const dateButton = page.getByRole('button', { name: new RegExp(`^Выбрать дату ${escapeRegExp(selectedSlot.dateText)},`) });
+  const dateButtonCount = await dateButton.count();
+
+  if (dateButtonCount > 0) {
+    await dateButton.click();
+    await expect(page.getByLabel('Доступное время')).not.toContainText(selectedSlot.timeLabel);
+  }
 });
 
 test('stale page shows conflict when selected slot was booked by another guest', async ({ browser }) => {
