@@ -231,6 +231,20 @@ RSpec.describe "Public API", type: :request do
     expect(json).to include("error" => "BAD_REQUEST")
   end
 
+  it "rejects booking with blank eventTypeId (spaces)" do
+    post "/api/public/bookings",
+      params: {
+        eventTypeId: "   ",
+        startAt: local_time(Date.new(2026, 5, 25), "10:00").iso8601,
+        guestName: "Anna",
+        guestEmail: "anna@example.com"
+      }.to_json,
+      headers: json_headers
+
+    expect(response).to have_http_status(:bad_request)
+    expect(json).to include("error" => "BAD_REQUEST")
+  end
+
   it "rejects booking with guest data that is too long" do
     post "/api/public/bookings",
       params: {
