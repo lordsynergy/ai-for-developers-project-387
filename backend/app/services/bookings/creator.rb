@@ -48,6 +48,8 @@ module Bookings
     end
 
     def find_event_type!
+      raise ApiError.new(status: :bad_request, code: "BAD_REQUEST", message: "Укажите тип встречи") if params[:eventTypeId].blank?
+
       event_type = owner.event_types.find_by(slug: params[:eventTypeId])
       return event_type if event_type
 
