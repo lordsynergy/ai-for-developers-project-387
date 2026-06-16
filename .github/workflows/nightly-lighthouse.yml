@@ -1,0 +1,65 @@
+name: Nightly Lighthouse
+
+on:
+  schedule:
+    - cron: '0 5 * * *'      # 08:00 МСК (05:00 UTC)
+  workflow_dispatch: {}
+
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          working-directory: backend
+          bundler-cache: true
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Prepare and seed backend (test env)
+        working-directory: backend
+        env:
+          RAILS_ENV: test
+        run: bundle exec rails db:prepare db:seed
+
+      - name: Start backend
+        working-directory: backend
+        env:
+          RAILS_ENV: test
+          ADMIN_EMAIL: admin@example.com
+          ADMIN_PASSWORD: password
+          FRONTEND_ORIGIN: http://127.0.0.1:4173
+        run: bundle exec rails server -b 127.0.0.1 -p 3000 &
+
+      - name: Wait for backend health
+        run: timeout 60 bash -c 'until curl -sf http://127.0.0.1:3000/up; do sleep 2; done'
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: frontend
+        env:
+          VITE_API_BASE_URL: http://127.0.0.1:3000
+        run: npm run build
+
+      - name: Install Lighthouse CI
+        run: npm install -g @lhci/cli
+
+      - name: Run Lighthouse CI
+        working-directory: frontend
+        run: lhci autorun
+
+      - name: Upload Lighthouse report
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: lighthouse-report
+          path: frontend/lhci-report/
+          retention-days: 7
